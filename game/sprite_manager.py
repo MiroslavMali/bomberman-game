@@ -4,7 +4,7 @@ Sprite Manager - Handles loading and managing all game sprites
 
 import pygame
 import os
-from config import TILE_SIZE
+from settings import TILE_SIZE
 
 class SpriteManager:
     def __init__(self):

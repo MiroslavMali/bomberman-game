@@ -3,7 +3,7 @@ Map Manager - Handles the game map layout and collision detection
 """
 
 import pygame
-from config import TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
+from settings import TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
 
 class MapManager:
     def __init__(self, sprite_manager):
@@ -12,54 +12,36 @@ class MapManager:
         self.create_map()
     
     def create_map(self):
-        """Create the fixed map layout"""
-        # Initialize empty map
+        """Create a classic Bomberman map: border of unbreakable walls, fewer unbreakables inside, rest breakable bricks."""
+        # 0 = grass, 1 = unbreakable wall, 2 = breakable brick
         self.map_data = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-        
-        # Create outer walls
+
+        # Border walls
         for x in range(GRID_WIDTH):
-            self.map_data[0][x] = 1  # Top wall
-            self.map_data[GRID_HEIGHT-1][x] = 1  # Bottom wall
-        
+            self.map_data[0][x] = 1
+            self.map_data[GRID_HEIGHT-1][x] = 1
         for y in range(GRID_HEIGHT):
-            self.map_data[y][0] = 1  # Left wall
-            self.map_data[y][GRID_WIDTH-1] = 1  # Right wall
-        
-        # Create internal maze structure (fixed layout)
-        # This creates a simple maze pattern
-        maze_pattern = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ]
-        
-        # Apply maze pattern to map (centered)
-        start_y = (GRID_HEIGHT - len(maze_pattern)) // 2
-        start_x = (GRID_WIDTH - len(maze_pattern[0])) // 2
-        
-        for y, row in enumerate(maze_pattern):
-            for x, tile in enumerate(row):
-                if (start_y + y < GRID_HEIGHT and start_x + x < GRID_WIDTH):
-                    self.map_data[start_y + y][start_x + x] = tile
-        
-        # Add some breakable bricks randomly in open areas
-        self.add_breakable_bricks()
+            self.map_data[y][0] = 1
+            self.map_data[y][GRID_WIDTH-1] = 1
+
+        # Classic Bomberman interior: unbreakable walls at every other tile, but skip some to avoid 2x2 blocks
+        for y in range(1, GRID_HEIGHT-1):
+            for x in range(1, GRID_WIDTH-1):
+                # Place unbreakable wall at every other tile, but skip if it would create a 2x2 block
+                if x % 2 == 0 and y % 2 == 0:
+                    # Only place if not surrounded by other unbreakables
+                    if not (
+                        self.map_data[y-1][x] == 1 and self.map_data[y][x-1] == 1 and self.map_data[y-1][x-1] == 1
+                    ):
+                        self.map_data[y][x] = 1
+
+        # Fill the rest with breakable bricks, except player start area
+        for y in range(1, GRID_HEIGHT-1):
+            for x in range(1, GRID_WIDTH-1):
+                if self.map_data[y][x] == 0 and not self.is_player_start_area(x, y):
+                    # Make about 70% of grass tiles breakable bricks
+                    if (x + y) % 3 != 0:
+                        self.map_data[y][x] = 2
     
     def add_breakable_bricks(self):
         """Add breakable bricks to open areas"""
@@ -92,6 +74,14 @@ class MapManager:
             return self.map_data[y][x]
         return 1  # Wall if out of bounds
     
+    def get_width(self):
+        """Get map width in tiles"""
+        return GRID_WIDTH
+    
+    def get_height(self):
+        """Get map height in tiles"""
+        return GRID_HEIGHT
+    
     def is_walkable(self, x, y):
         """Check if position is walkable"""
         tile_type = self.get_tile_type(x, y)
@@ -117,4 +107,8 @@ class MapManager:
                 elif tile_type == 1:  # Wall
                     screen.blit(self.sprite_manager.get_sprite('wall'), pos)
                 elif tile_type == 2:  # Breakable brick
-                    screen.blit(self.sprite_manager.get_sprite('brick'), pos) 
+                    screen.blit(self.sprite_manager.get_sprite('brick'), pos)
+    
+    def reset(self):
+        """Reset the map to initial state"""
+        self.create_map() 

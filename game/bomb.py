@@ -4,7 +4,7 @@ Bomb - Handles bomb placement, timing, and explosion logic
 
 import pygame
 import time
-from config import TILE_SIZE, BOMB_TIMER, EXPLOSION_DURATION, EXPLOSION_RANGE
+from settings import TILE_SIZE, BOMB_TIMER, EXPLOSION_DURATION, EXPLOSION_RANGE
 
 class Bomb:
     def __init__(self, tile_x, tile_y, map_manager):
