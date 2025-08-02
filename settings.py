@@ -12,7 +12,7 @@ GRID_WIDTH = 20
 GRID_HEIGHT = 15
 PLAYER_SPEED = 5  # Back to original speed
 PLAYER_SIZE = 56  # Slightly smaller than tile for visual clarity
-BOMB_TIMER = 3000  # milliseconds
+BOMB_TIMER = 3000  # milliseconds (3 seconds)
 EXPLOSION_DURATION = 500  # milliseconds
 EXPLOSION_RANGE = 2  # tiles
 

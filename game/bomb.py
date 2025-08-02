@@ -41,6 +41,25 @@ class Bomb:
             if current_time - self.explosion_start >= EXPLOSION_DURATION / 1000.0:
                 self.finished = True  # Signal to remove bomb
     
+    def is_placeable(self):
+        """Check if a new bomb can be placed at this location"""
+        # Allow placement when bomb has exploded (sprite disappeared) but explosion animation is still playing
+        # This means the tile is available for new bombs right after the bomb sprite disappears
+        return self.exploded
+    
+    def is_player_on_bomb(self, player_x, player_y, player_size):
+        """Check if the player is currently on top of this bomb"""
+        # Calculate bomb's pixel position
+        bomb_pixel_x = self.tile_x * TILE_SIZE
+        bomb_pixel_y = self.tile_y * TILE_SIZE
+        
+        # Check if player's center is within the bomb tile
+        # This is more precise than checking collision box overlap
+        is_on_bomb = (bomb_pixel_x <= player_x < bomb_pixel_x + TILE_SIZE and 
+                     bomb_pixel_y <= player_y < bomb_pixel_y + TILE_SIZE)
+        
+        return is_on_bomb
+    
     def explode(self):
         """Trigger bomb explosion"""
         self.exploded = True
