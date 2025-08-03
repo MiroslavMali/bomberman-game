@@ -74,12 +74,15 @@ class Level:
             self.display_surface.blit(text, (10, 10 + i * 25))
 
     def reset(self):
-        """Reset the level"""
-        # Recreate player
+        """Reset the level to initial state"""
+        # Recreate player at starting position
         self.player = Player(1, 1, self.sprite_manager, self.map_manager)
         
-        # Reset map (if needed)
+        # Reset map to initial state
         self.map_manager.reset()
+        
+        # Reset game state
+        self.running = True
 
     def run(self, events):
         """Main level update and render"""

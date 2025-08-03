@@ -18,26 +18,59 @@ class PauseMenu:
         self.title_color = WHITE
         self.option_color = WHITE
         self.selected_color = GREEN
+        
+        # Input cooldown to prevent rapid state switching
+        self.last_input_time = 0
+        self.input_cooldown = 200  # milliseconds
+        
+        # Flag to prevent ESC from being processed immediately when entering pause
+        self.just_entered_pause = False
 
     def handle_input(self, events):
+        current_time = pygame.time.get_ticks()
+        
+        # If we just entered pause, ignore the first ESC key press
+        if self.just_entered_pause:
+            self.just_entered_pause = False
+            return
+        
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_ESCAPE:
+                    # ESC resumes the game (no cooldown for ESC)
+                    self._was_in_pause = False
+                    self.game_state_manager.set_state('level')
+                elif current_time - self.last_input_time < self.input_cooldown:
+                    continue  # Skip other input if cooldown hasn't passed
+                elif event.key == pygame.K_UP:
                     self.selected_option = (self.selected_option - 1) % len(self.options)
+                    self.last_input_time = current_time
                 elif event.key == pygame.K_DOWN:
                     self.selected_option = (self.selected_option + 1) % len(self.options)
+                    self.last_input_time = current_time
                 elif event.key == pygame.K_RETURN:
                     self.select_option()
-                elif event.key == pygame.K_ESCAPE:
-                    self.game_state_manager.set_state('level')
+                    self.last_input_time = current_time
 
     def select_option(self):
         if self.selected_option == 0:  # Resume
+            self._was_in_pause = False
             self.game_state_manager.set_state('level')
         elif self.selected_option == 1:  # Quit to Menu
+            self._was_in_pause = False
+            # Request level reset when quitting to menu to ensure fresh state on next start
+            self.game_state_manager.request_reset()
             self.game_state_manager.set_state('main_menu')
 
     def run(self, events):
+        # Set flag when entering pause menu
+        if not hasattr(self, '_was_in_pause'):
+            self._was_in_pause = False
+        
+        if not self._was_in_pause:
+            self.just_entered_pause = True
+            self._was_in_pause = True
+        
         self.handle_input(events)
         self.draw()
 

@@ -31,6 +31,8 @@ class MainMenu:
 
     def select_option(self):
         if self.selected_option == 0:  # Start Game
+            # Request level reset to ensure fresh game state
+            self.game_state_manager.request_reset()
             self.game_state_manager.set_state('level')
         elif self.selected_option == 1:  # Quit
             pygame.quit()

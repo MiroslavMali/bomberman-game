@@ -20,7 +20,7 @@ class Player:
         
         # Bomb placement
         self.bombs = []
-        self.max_bombs = 3
+        self.max_bombs = 1
         
     def handle_input(self, keys):
         """Handle keyboard input for movement"""
