@@ -20,7 +20,7 @@ class Player:
         
         # Bomb placement
         self.bombs = []
-        self.max_bombs = 1
+        self.max_bombs = 2
         
     def handle_input(self, keys):
         """Handle keyboard input for movement"""
@@ -293,7 +293,7 @@ class Player:
                         return False
             
             # Create new bomb
-            from game.bomb import Bomb
+            from bomb import Bomb
             bomb = Bomb(tile_x, tile_y, self.map_manager)
             self.bombs.append(bomb)
             return True

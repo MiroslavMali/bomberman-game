@@ -1,9 +1,10 @@
 import pygame
 from settings import *
-from game.sprite_manager import SpriteManager
-from game.map_manager import MapManager
-from game.player import Player
-from game.bomb import Bomb
+from sprite_manager import SpriteManager
+from map_manager import MapManager
+from player import Player
+from bomb import Bomb
+from death_screen import DeathScreen
 
 class Level:
     def __init__(self, display_surface, game_state_manager, clock):
@@ -20,12 +21,20 @@ class Level:
         
         # Game state
         self.running = True
+        self.player_dead = False
+        
+        # Death screen
+        self.death_screen = DeathScreen(display_surface, game_state_manager)
         
         # Font for UI
         self.font = pygame.font.Font(None, FONT_SIZE)
 
     def handle_input(self, events):
         """Handle pygame events"""
+        if self.player_dead:
+            self.death_screen.handle_input(events)
+            return
+            
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -33,14 +42,27 @@ class Level:
     
     def handle_movement(self):
         """Handle continuous movement input"""
+        if self.player_dead:
+            return
+            
         keys = pygame.key.get_pressed()
         self.player.handle_input(keys)
         self.player.move()
 
     def update(self, dt):
         """Update game state"""
+        if self.player_dead:
+            self.death_screen.update()
+            return
+            
         # Update player bombs
         self.player.update_bombs(dt)
+        
+        # Check for player death
+        self.check_player_death()
+        
+        # Check for chain reactions
+        self.check_chain_reactions()
 
     def draw(self):
         """Render everything to screen"""
@@ -59,6 +81,10 @@ class Level:
         
         # Draw UI
         self.draw_ui()
+        
+        # Draw death screen if player is dead
+        if self.player_dead:
+            self.death_screen.draw()
 
     def draw_ui(self):
         """Draw user interface elements"""
@@ -83,6 +109,40 @@ class Level:
         
         # Reset game state
         self.running = True
+        self.player_dead = False
+    
+    def check_player_death(self):
+        """Check if player is hit by any explosion"""
+        if self.player_dead:
+            return
+            
+        # Check all bombs for explosion collision
+        for bomb in self.player.bombs:
+            if bomb.is_player_hit_by_explosion(self.player.x, self.player.y, self.player.size):
+                self.player_dead = True
+                self.death_screen.start_death_sequence()
+                return
+    
+    def check_chain_reactions(self):
+        """Check if any exploding bombs should trigger other bombs"""
+        # Check each bomb that is currently exploding
+        for bomb in self.player.bombs:
+            if bomb.exploded and not bomb.finished:
+                # Check if this explosion hits any other bombs
+                for other_bomb in self.player.bombs:
+                    if other_bomb != bomb and not other_bomb.exploded:
+                        # Check if other bomb is in this explosion's area
+                        if self.is_bomb_in_explosion_area(other_bomb, bomb):
+                            # Trigger the other bomb to explode immediately
+                            other_bomb.explode()
+    
+    def is_bomb_in_explosion_area(self, bomb, exploding_bomb):
+        """Check if a bomb is in the explosion area of another bomb"""
+        # Check if the bomb's tile position is in the explosion positions
+        for explosion_x, explosion_y in exploding_bomb.explosion_positions:
+            if bomb.tile_x == explosion_x and bomb.tile_y == explosion_y:
+                return True
+        return False
 
     def run(self, events):
         """Main level update and render"""

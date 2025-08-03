@@ -60,6 +60,47 @@ class Bomb:
         
         return is_on_bomb
     
+    def is_player_hit_by_explosion(self, player_x, player_y, player_size):
+        """Check if the player is hit by this bomb's explosion"""
+        if not self.exploded:
+            return False
+            
+        # Check if explosion is still active
+        current_time = time.time()
+        if current_time - self.explosion_start >= EXPLOSION_DURATION / 1000.0:
+            return False
+            
+        # Calculate player's collision box
+        player_half_size = player_size // 2
+        player_left = player_x - player_half_size
+        player_right = player_x + player_half_size
+        player_top = player_y - player_half_size
+        player_bottom = player_y + player_half_size
+        
+        # Check each explosion position
+        for explosion_x, explosion_y in self.explosion_positions:
+            # Calculate explosion tile bounds (actual tile, not sprite)
+            explosion_left = explosion_x * TILE_SIZE
+            explosion_right = explosion_left + TILE_SIZE
+            explosion_top = explosion_y * TILE_SIZE
+            explosion_bottom = explosion_top + TILE_SIZE
+            
+            # Check if player collision box overlaps with explosion tile
+            # Use a smaller collision area (80% of tile) to be more forgiving
+            collision_margin = TILE_SIZE * 0.1  # 10% margin on each side
+            explosion_left += collision_margin
+            explosion_right -= collision_margin
+            explosion_top += collision_margin
+            explosion_bottom -= collision_margin
+            
+            if (player_left < explosion_right and 
+                player_right > explosion_left and 
+                player_top < explosion_bottom and 
+                player_bottom > explosion_top):
+                return True
+                
+        return False
+    
     def explode(self):
         """Trigger bomb explosion"""
         self.exploded = True
@@ -94,6 +135,15 @@ class Bomb:
                     break
                 else:  # Grass - continue explosion
                     self.explosion_positions.append((x, y))
+        
+        # Check for chain reactions - trigger other bombs in explosion area
+        self.trigger_chain_reactions()
+    
+    def trigger_chain_reactions(self):
+        """Trigger other bombs that are in this explosion's area"""
+        # Get all bombs from the player (we need access to the bomb list)
+        # This will be called from the level class where we have access to all bombs
+        pass
     
     def render(self, screen, sprite_manager):
         """Render the bomb or explosion"""
